@@ -222,19 +222,19 @@ d3.csv("data.csv").then(function(data) {
         }
     }
 
-    const minslider = document.querySelector("#mindate")
-    const maxslider = document.querySelector("#maxdate")
+    const minslider = document.querySelector("#mindate");
+    const maxslider = document.querySelector("#maxdate");
 
     minslider.oninput = function() {
-        document.querySelector("#mind_lbl").innerHTML = minslider.value
+        document.querySelector("#mind_lbl").innerText = minslider.value;
         filter_data(selected_country);
-    }
+    };
     maxslider.oninput = function() { 
         if (maxslider.value < minslider.value) {
-            maxslider.value = minslider.value
+            maxslider.value = minslider.value;
         }
-        document.querySelector("#maxd_lbl").innerHTML = maxslider.value
-        filter_data(selected_country)
+        document.querySelector("#maxd_lbl").innerText = maxslider.value;
+        filter_data(selected_country);
     };
 
     // draw world map
