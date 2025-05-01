@@ -30,7 +30,35 @@
 <p id="avg_res_lbl">Average response time: N/A</p>
 <p id="avg_loss_lbl">Average financial loss: N/A</p>
 <p id="avg_usr_lbl">Average number of affected users: N/A</p>
-<h3>Number of Affected Users vs. Response time</h3>
+<div>
+<label>X variable:</label>
+<select name="xvar" id="xvar">
+    <option value="Year">Year</option>
+    <option value="Financial Loss (in Million $)">Financial Loss</option>
+    <option value="Number of Affected Users" selected="selected">Number of Affected Users</option>
+    <option value="Incident Resolution Time (in Hours)">Incident Resolution Time</option>
+
+    <option value="Attack Type">Attack Type</option>
+    <option value="Target Industry">Target Industry</option>
+    <option value="Attack Source">Attack Source</option>
+    <option value="Security Vulnerability Type">Security Vulnerability Type</option>
+    <option value="Defense Mechanism Used">Defense Mechanism Used</option>
+</select>
+
+<label>Y variable:</label>
+<select name="yvar" id="yvar">
+    <option value="Year">Year</option>
+    <option value="Financial Loss (in Million $)">Financial Loss</option>
+    <option value="Number of Affected Users">Number of Affected Users</option>
+    <option value="Incident Resolution Time (in Hours)" selected="selected">Incident Resolution Time</option>
+
+    <option value="Attack Type">Attack Type</option>
+    <option value="Target Industry">Target Industry</option>
+    <option value="Attack Source">Attack Source</option>
+    <option value="Security Vulnerability Type">Security Vulnerability Type</option>
+    <option value="Defense Mechanism Used">Defense Mechanism Used</option>
+</select>
+</div>
 <svg id="chart2" width="800" height="450"></svg>
 <script src="script.js"></script>
 </body>

@@ -37,13 +37,21 @@ function occurences(arr) {
 }
 
 // draw graph 2
-function graph2(data, data2) {
-    var num_usr = d3.map(filtered, function(d) {
+function graph2(data) {
+    var num_usr = d3.map(data, function(d) {
         return parseInt(d["Number of Affected Users"]);
     });
 
-    var res_time = d3.map(filtered, function(d) {
+    var res_time = d3.map(data, function(d) {
         return parseInt(d["Incident Resolution Time (in Hours)"]);
+    });
+
+    var fin_loss = d3.map(data, function(d) {
+        return parseInt(d["Financial Loss (in Million $)"]);
+    });
+
+    var years = d3.map(data, function(d) {
+        return parseInt(d["Year"]);
     });
 
     var tooltip = d3.select("body").append("div")
@@ -51,6 +59,14 @@ function graph2(data, data2) {
         .style("opacity", 0);
 
     var color = d3.scaleOrdinal()
+        .domain([
+            "DDoS",
+            "Ransomware",
+            "SQL Injection",
+            "Man-in-the-Middle",
+            "Phishing",
+            "Malware"
+        ])
         .range([
             "#3A6A89",  // muted teal
             "#F24C3D",  // bright coral
@@ -60,27 +76,129 @@ function graph2(data, data2) {
             "#E6A9A1"   // pale pink
         ]);
 
-    var x = d3.scaleLinear()
-        .domain([0, 1000000])
-        .range([40, width - 40]);
-    var y = d3.scaleLinear()
-        .domain([0, 75])
-        .range([height - 40, 0]);
+    
+    var num_usr_scale = d3.scaleLinear()
+        .domain([0, 1000000]);
+
+    var res_time_scale = d3.scaleLinear()
+        .domain([0, 75]);
+    
+    var fin_loss_scale = d3.scaleLinear()
+        .domain([0, 100]);
+
+    var year_scale = d3.scaleLinear()
+        .domain([2015, 2024]);
+    
+    var target_scale = d3.scalePoint()
+        .domain(["", ...new Set(d3.map(data, function(d) {
+            return d["Target Industry"];
+        }))]);
+    
+    var type_scale = d3.scalePoint()
+        .domain(["", ...new Set(d3.map(data, function(d) {
+            return d["Attack Type"];
+        }))]);
+    
+    var source_scale = d3.scalePoint()
+        .domain(["", ...new Set(d3.map(data, function(d) {
+            return d["Attack Source"];
+        }))]);
+
+    var vuln_scale = d3.scalePoint()
+        .domain(["", ...new Set(d3.map(data, function(d) {
+            return d["Security Vulnerability Type"];
+        }))]);
+
+    var def_scale = d3.scalePoint()
+        .domain(["", ...new Set(d3.map(data, function(d) {
+            return d["Defense Mechanism Used"];
+        }))]);
+
+    const xvar = document.querySelector("#xvar").value;
+    const yvar = document.querySelector("#yvar").value;
+
+    var x,y;
+
+    switch (xvar) {
+        case "Number of Affected Users":
+            x = num_usr_scale.range([80, width - 80]);
+            break;
+        case "Financial Loss (in Million $)":
+            x = fin_loss_scale.range([80, width - 80]);
+            break;
+        case "Incident Resolution Time (in Hours)":
+            x = res_time_scale.range([80, width - 80]);
+            break;
+        case "Year":
+            x = year_scale.range([80, width - 80]);
+            break;
+        case "Attack Type":
+            x = type_scale.range([80, width - 80]);
+            break;
+        case "Attack Source":
+            x = source_scale.range([80, width - 80]);
+            break;
+        case "Target Industry":
+            x = target_scale.range([80, width - 80]);
+            break;
+        case "Security Vulnerability Type":
+            x = vuln_scale.range([80, width - 80]);
+            break;
+        case "Defense Mechanism Used":
+            x = def_scale.range([80, width - 80]);
+            break;
+        default:
+            x = num_usr_scale.range([80, width - 80]);
+            break;
+    }
+
+    switch (yvar) {
+        case "Number of Affected Users":
+            y = num_usr_scale.range([height - 80, 0]);
+            break;
+        case "Financial Loss (in Million $)":
+            y = fin_loss_scale.range([height - 80, 0]);
+            break;
+        case "Incident Resolution Time (in Hours)":
+            y = res_time_scale.range([height - 80, 0]);
+            break;
+        case "Year":
+            y = year_scale.range([height - 80, 0]);
+            break;
+        case "Attack Type":
+            y = type_scale.range([height - 80, 0]);
+            break;
+        case "Attack Source":
+            y = source_scale.range([height - 80, 0]);
+            break;
+        case "Target Industry":
+            y = target_scale.range([height - 80, 0]);
+            break;
+        case "Security Vulnerability Type":
+            y = vuln_scale.range([height - 80, 0]);
+            break;
+        case "Defense Mechanism Used":
+            y = def_scale.range([height - 80, 0]);
+            break;
+        default:
+            y = num_usr_scale.range([height - 80, 0]);
+            break;
+    }
 
     svg2.html("");
     svg2.append("g")    // x axis
         .call(d3.axisBottom(x))
-        .attr("transform", "translate(0," + (height - 40) + ")");
+        .attr("transform", "translate(0," + (height - 80) + ")");
     svg2.append("g")    // y axis
-        .attr("transform", "translate("+ (40) +", 0)")
+        .attr("transform", "translate("+ (80) +", 0)")
         .call(d3.axisLeft(y));
     svg2.append('g')
         .selectAll("dot")
         .data(data)
         .enter()
         .append("circle")
-            .attr("cx", function (d) { return x(d["Number of Affected Users"]); } )
-            .attr("cy", function (d) { return y(d["Incident Resolution Time (in Hours)"]); } )
+            .attr("cx", function (d) { return x(d[xvar]); } )
+            .attr("cy", function (d) { return y(d[yvar]); } )
             .attr("r", 3)
             .style("fill", function(d) {
                 return color(d["Attack Type"]);
@@ -92,10 +210,8 @@ function graph2(data, data2) {
         .on("mousemove", function(event, d) {
             // update tooltip text + position
             tooltip.html(
-                "<b>Affected Users:</b> " + d["Number of Affected Users"] + "<br/>" +
-                "<b>Resolution Time (hours):</b> " +  d["Incident Resolution Time (in Hours)"] + "<br/>" +
-                "<b>Year:</b> " + d["Year"] + "<br/>" +
-                "<b>Attack type:</b> " + d["Attack Type"] + "<br/>")
+                "<b>"+xvar+":</b> " + d[xvar] + "<br/>" +
+                "<b>"+yvar+":</b> " +  d[yvar] + "<br/>")
                 .style("left", (event.pageX + 15) + "px")
                 .style("top", (event.pageY + 15) + "px");
         })
@@ -220,6 +336,13 @@ d3.csv("data.csv").then(function(data) {
 
             graph2(filtered);
         }
+    }
+
+    document.querySelector("#xvar").onchange = function() {
+        filter_data(selected_country);
+    }
+    document.querySelector("#yvar").onchange = function() {
+        filter_data(selected_country);
     }
 
     const minslider = document.querySelector("#mindate");
