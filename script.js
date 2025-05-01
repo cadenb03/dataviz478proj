@@ -36,6 +36,7 @@ function occurences(arr) {
   return counts;
 }
 
+// draw graph 2
 function graph2(data, data2) {
     var num_usr = d3.map(filtered, function(d) {
         return parseInt(d["Number of Affected Users"]);
@@ -67,10 +68,10 @@ function graph2(data, data2) {
         .range([height - 40, 0]);
 
     svg2.html("");
-    svg2.append("g")
+    svg2.append("g")    // x axis
         .call(d3.axisBottom(x))
         .attr("transform", "translate(0," + (height - 40) + ")");
-    svg2.append("g")
+    svg2.append("g")    // y axis
         .attr("transform", "translate("+ (40) +", 0)")
         .call(d3.axisLeft(y));
     svg2.append('g')
@@ -89,7 +90,6 @@ function graph2(data, data2) {
             tooltip.style("opacity", 1);    // show tooltip
         })
         .on("mousemove", function(event, d) {
-            //var name = d["properties"]["name"];
             // update tooltip text + position
             tooltip.html(
                 "<b>Affected Users:</b> " + d["Number of Affected Users"] + "<br/>" +
@@ -113,7 +113,6 @@ d3.csv("data.csv").then(function(data) {
     const entries = Object.entries(types);
     entries.sort((a, b) => a[1] - b[1]);
     const sortedScores = Object.fromEntries(entries);
-    console.log(sortedScores);
 
     var min_att = Math.min(...Object.values(occ))   // minimum number of attacks
     var max_att = Math.max(...Object.values(occ))   // maximum number of attacks
@@ -150,7 +149,88 @@ d3.csv("data.csv").then(function(data) {
 
     graph2(data);
 
+    function filter_data(cname) {
+        if (countries.includes(cname)) {
 
+            // select country as filter
+            selected_country = cname;
+            
+            sel_lbl.innerText = "Selected country: " + selected_country;
+            
+            filtered = d3.filter(data, function(d) {
+                if (d["Country"] == selected_country) return d;
+            });
+
+            const mindate = parseInt(document.querySelector('#mindate').value);
+            const maxdate = parseInt(document.querySelector('#maxdate').value);
+            
+            filtered = d3.filter(filtered, function(d) {
+                if (parseInt(d["Year"]) >= mindate && parseInt(d["Year"]) <= maxdate) return d;
+            });
+
+            total_lbl.innerText = "Total cyber attacks: " + filtered.length + " (" + (100*filtered.length/tocc).toFixed(2)+"%)";
+
+            var avg_res = d3.map(filtered, function(d) {
+                return parseInt(d["Incident Resolution Time (in Hours)"]);
+            }).reduce((a,b) => a+b, 0) / filtered.length;
+            avg_res_lbl.innerText = "Average response time: " + avg_res.toFixed(2) + " hours";
+            
+            var avg_loss = d3.map(filtered, function(d) {
+                return parseInt(d["Financial Loss (in Million $)"]);
+            }).reduce((a,b) => a+b, 0) / filtered.length;
+            avg_loss_lbl.innerText = "Average financial loss: $" + avg_loss.toFixed(2) + " Million USD";
+
+            var avg_usr = d3.map(filtered, function(d) {
+                return parseInt(d["Number of Affected Users"]);
+            }).reduce((a,b) => a+b, 0) / filtered.length / 1000;
+            avg_usr_lbl.innerText = "Average number of affected users: " + avg_usr.toFixed(0) + " thousand users";
+
+            graph2(filtered);
+        }
+        else {
+            // clear filtered country
+            
+            selected_country = "None";
+            
+            sel_lbl.innerText = "Selected country: " + selected_country;
+
+            const mindate = parseInt(document.querySelector('#mindate').value);
+            const maxdate = parseInt(document.querySelector('#maxdate').value);
+
+            filtered = d3.filter(data, function(d) {
+                if (parseInt(d["Year"]) >= mindate && parseInt(d["Year"]) <= maxdate) return d;
+            });
+
+            total_lbl.innerText = "Total cyber attacks: " + filtered.length;
+
+            var avg_res = d3.map(filtered, function(d) {
+                return parseInt(d["Incident Resolution Time (in Hours)"]);
+            }).reduce((a,b) => a+b, 0) / filtered.length;
+            avg_res_lbl.innerText = "Average response time: " + avg_res.toFixed(2) + " hours";
+            
+            var avg_loss = d3.map(filtered, function(d) {
+                return parseInt(d["Financial Loss (in Million $)"]);
+            }).reduce((a,b) => a+b, 0) / filtered.length;
+            avg_loss_lbl.innerText = "Average financial loss: $" + avg_loss.toFixed(2) + " Million USD";
+
+            var avg_usr = d3.map(filtered, function(d) {
+                return parseInt(d["Number of Affected Users"]);
+            }).reduce((a,b) => a+b, 0) / filtered.length / 1000;
+            avg_usr_lbl.innerText = "Average number of affected users: " + avg_usr.toFixed(0) + " thousand users";
+
+            graph2(filtered);
+        }
+    }
+
+    document.querySelector("#mindate").oninput = function() {
+        filter_data(selected_country);
+    }
+    document.querySelector("#maxdate").oninput = function() { 
+        if (document.querySelector("#maxdate").value < document.querySelector("#mindate").value) {
+            document.querySelector("#maxdate").value = document.querySelector("#mindate").value
+        }
+        filter_data(selected_country)
+    };
 
     // draw world map
     d3.json("world.geojson").then(function(wdata){
@@ -163,7 +243,7 @@ d3.csv("data.csv").then(function(data) {
                         return "#ff0000";
                     } else {
                         // else gray color
-                        return "#b8b8b8";
+                        return "#e8e8e8";
                     }
                 })
                 .attr("fill-opacity", function(d) {
@@ -188,7 +268,7 @@ d3.csv("data.csv").then(function(data) {
                 .on("mousemove", function(event, d) {
                     var name = d["properties"]["name"];
                     // update tooltip text + position
-                    tooltip.html("<b>"+name+"</b>"+"<br/>"+occ[name]+" cyber attacks")
+                    tooltip.html("<b>"+name+"</b>"+"<br/>"+occ[name]+" cyber attacks"+"<br/>-<br/>"+"click to filter by country")
                         .style("left", (event.pageX + 15) + "px")
                         .style("top", (event.pageY + 15) + "px");
                 })
@@ -197,62 +277,7 @@ d3.csv("data.csv").then(function(data) {
                 })
                 .on("click", function(event, d) {
                     var name = d["properties"]["name"];
-                    if (countries.includes(name)) {
-
-                        console.log(d);
-                        selected_country = name;
-                        console.log(selected_country);
-                        
-                        sel_lbl.innerText = "Selected country: " + selected_country;
-                        
-                        filtered = d3.filter(data, function(d) {
-                            if (d["Country"] == selected_country) return d
-                        });
-                        console.log(filtered)
-
-                        total_lbl.innerText = "Total cyber attacks: " + occ[selected_country];
-
-                        var avg_res = d3.map(filtered, function(d) {
-                            return parseInt(d["Incident Resolution Time (in Hours)"]);
-                        }).reduce((a,b) => a+b, 0) / occ[selected_country];
-                        avg_res_lbl.innerText = "Average response time: " + avg_res.toFixed(2) + " hours";
-                        
-                        var avg_loss = d3.map(filtered, function(d) {
-                            return parseInt(d["Financial Loss (in Million $)"]);
-                        }).reduce((a,b) => a+b, 0) / occ[selected_country];
-                        avg_loss_lbl.innerText = "Average financial loss: $" + avg_loss.toFixed(2) + " Million USD";
-
-                        var avg_usr = d3.map(filtered, function(d) {
-                            return parseInt(d["Number of Affected Users"]);
-                        }).reduce((a,b) => a+b, 0) / occ[selected_country] / 1000;
-                        avg_usr_lbl.innerText = "Average number of affected users: " + avg_usr.toFixed(0) + " thousand users";
-
-                        graph2(filtered);
-                    }
-                    else {
-                        selected_country = "None";
-                        
-                        sel_lbl.innerText = "Selected country: " + selected_country;
-
-                        total_lbl.innerText = "Total cyber attacks: " + tocc;
-
-                        var avg_res = d3.map(data, function(d) {
-                            return parseInt(d["Incident Resolution Time (in Hours)"]);
-                        }).reduce((a,b) => a+b, 0) / tocc;
-                        avg_res_lbl.innerText = "Average response time: " + avg_res.toFixed(2) + " hours";
-                        
-                        var avg_loss = d3.map(data, function(d) {
-                            return parseInt(d["Financial Loss (in Million $)"]);
-                        }).reduce((a,b) => a+b, 0) / tocc;
-                        avg_loss_lbl.innerText = "Average financial loss: $" + avg_loss.toFixed(2) + " Million USD";
-
-                        var avg_usr = d3.map(data, function(d) {
-                            return parseInt(d["Number of Affected Users"]);
-                        }).reduce((a,b) => a+b, 0) / tocc / 1000;
-                        avg_usr_lbl.innerText = "Average number of affected users: " + avg_usr.toFixed(0) + " thousand users";
-
-                        graph2(data);
-                    }
+                    filter_data(name);
                 });
     });
 })

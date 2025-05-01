@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<title>D3 Bar Chart Assignment</title>
+<title>CSE478 Final Project</title>
 <link rel="stylesheet" href="style.css" />
 <script src="https://d3js.org/d3.v7.min.js"></script>
 <script src="https://unpkg.com/topojson@3"></script>
@@ -10,6 +10,17 @@
 <body>
 <h1>Global Cybersecurity Threats (2015-2024)</h1>
 <svg id="chart" width="800" height="450"></svg>
+<div>
+    <label>Filter Start date</label>
+    <input type="range" id="mindate" value="2015" min="2015" max="2024" />
+    <label id="mind_lbl">2015</label>
+</div>
+
+<div>
+    <label>Filter End date</label>
+    <input type="range" id="maxdate" value="2024" min="2015" max="2024" />
+    <label id="maxd_lbl">2024</label>
+</div>
 <h2 id="sel_lbl">Selected country: None</h2>
 <h3>General stats:</h3>
 <p id="total_lbl">Total cyber attacks: N/A</p>
