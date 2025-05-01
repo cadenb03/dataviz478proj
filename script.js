@@ -226,6 +226,9 @@ d3.csv("data.csv").then(function(data) {
     const maxslider = document.querySelector("#maxdate");
 
     minslider.oninput = function() {
+        if (minslider.value > maxslider.value) {
+            minslider.value = maxslider.value;
+        }
         document.querySelector("#mind_lbl").innerText = minslider.value;
         filter_data(selected_country);
     };
