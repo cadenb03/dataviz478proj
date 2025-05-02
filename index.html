@@ -13,6 +13,8 @@
 <p>Click a country to filter by it.</p>
 <br/>
 <svg id="chart" width="800" height="450"></svg>
+<br/>
+<button type="button" id="reset">Reset all filters</button> 
 <div>
     <label>Filter Start date</label>
     <input type="range" id="mindate" value="2015" min="2015" max="2024" />
@@ -31,7 +33,7 @@
 <p id="avg_loss_lbl">Average financial loss: N/A</p>
 <p id="avg_usr_lbl">Average number of affected users: N/A</p>
 <div>
-<label>X variable:</label>
+<label><b>X variable:</b></label>
 <select name="xvar" id="xvar">
     <option value="Year">Year</option>
     <option value="Financial Loss (in Million $)">Financial Loss</option>
@@ -45,7 +47,7 @@
     <option value="Defense Mechanism Used">Defense Mechanism Used</option>
 </select>
 
-<label>Y variable:</label>
+<label><b>Y variable:</b></label>
 <select name="yvar" id="yvar">
     <option value="Year">Year</option>
     <option value="Financial Loss (in Million $)">Financial Loss</option>
@@ -59,7 +61,7 @@
     <option value="Defense Mechanism Used">Defense Mechanism Used</option>
 </select>
 </div>
-<svg id="chart2" width="800" height="450"></svg>
+<svg id="chart2" width="3200" height="450"></svg>
 <script src="script.js"></script>
 </body>
 </html>

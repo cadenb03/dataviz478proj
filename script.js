@@ -12,7 +12,7 @@ var svg = d3.select("#chart")
     .attr("height", height);
 
 var svg2 = d3.select("#chart2")
-    .attr("width", width)
+    .attr("width", 3200)
     .attr("height", height);
 
 var path = d3.geoPath()
@@ -86,8 +86,10 @@ function graph2(data) {
     var fin_loss_scale = d3.scaleLinear()
         .domain([0, 100]);
 
-    var year_scale = d3.scaleLinear()
-        .domain([2015, 2024]);
+    var year_scale = d3.scalePoint()
+        .domain(["", ...new Set(d3.map(data, function(d) {
+            return d["Year"];
+        }))]);
     
     var target_scale = d3.scalePoint()
         .domain(["", ...new Set(d3.map(data, function(d) {
@@ -188,7 +190,7 @@ function graph2(data) {
     svg2.html("");
     svg2.append("g")    // x axis
         .call(d3.axisBottom(x))
-        .attr("transform", "translate(0," + (height - 80) + ")");
+        .attr("transform", "translate(0," + (height - 80) + ")")
     svg2.append("g")    // y axis
         .attr("transform", "translate("+ (80) +", 0)")
         .call(d3.axisLeft(y));
@@ -218,6 +220,35 @@ function graph2(data) {
         .on("mouseout", function(event, d) {
              tooltip.style("opacity", 0);    // hide tooltip
         });
+    
+    // legend
+    svg2.selectAll("dots")
+        .data([...new Set(d3.map(data, function(d) {
+            return d["Attack Type"];
+        }))])
+        .enter()
+        .append("circle")
+            .attr("cx", 900)
+            .attr("cy", (d, i) => 25 + i*25)
+            .attr("r", 7)
+            .style("fill", d => color(d))
+    
+    svg2.selectAll("llabels")
+        .data([...new Set(d3.map(data, function(d) {
+            return d["Attack Type"];
+        }))])
+        .enter()
+        .append("text")
+            .attr("x", 910)
+            .attr("y", (d, i) => 31+i*25)
+            .text(d => d)
+    svg2.selectAll("axisl")
+        .data([0])
+        .enter()
+        .append("text")
+            .attr("x", width/2)
+            .attr("y", height-32)
+            .text(xvar)
 }
 
 d3.csv("data.csv").then(function(data) {
@@ -246,22 +277,22 @@ d3.csv("data.csv").then(function(data) {
         if (d["Country"] == selected_country) return d
     });
 
-    total_lbl.innerText = "Total cyber attacks: " + tocc;
+    total_lbl.innerHTML = "<b>Total cyber attacks:</b> " + tocc;
 
     var avg_res = d3.map(data, function(d) {
         return parseInt(d["Incident Resolution Time (in Hours)"]);
     }).reduce((a,b) => a+b, 0) / tocc;
-    avg_res_lbl.innerText = "Average response time: " + avg_res.toFixed(2) + " hours";
+    avg_res_lbl.innerHTML = "<b>Average response time:</b> " + avg_res.toFixed(2) + " hours";
     
     var avg_loss = d3.map(data, function(d) {
         return parseInt(d["Financial Loss (in Million $)"]);
     }).reduce((a,b) => a+b, 0) / tocc;
-    avg_loss_lbl.innerText = "Average financial loss: $" + avg_loss.toFixed(2) + " Million USD";
+    avg_loss_lbl.innerHTML = "<b>Average financial loss:</b> $" + avg_loss.toFixed(2) + " Million USD";
 
     var avg_usr = d3.map(data, function(d) {
         return parseInt(d["Number of Affected Users"]);
     }).reduce((a,b) => a+b, 0) / tocc / 1000;
-    avg_usr_lbl.innerText = "Average number of affected users: " + avg_usr.toFixed(0) + " thousand users";
+    avg_usr_lbl.innerHTML = "<b>Average number of affected users:</b> " + avg_usr.toFixed(0) + " thousand users";
 
     graph2(data);
 
@@ -271,7 +302,7 @@ d3.csv("data.csv").then(function(data) {
             // select country as filter
             selected_country = cname;
             
-            sel_lbl.innerText = "Selected country: " + selected_country;
+            sel_lbl.innerHTML = "Selected country: " + selected_country;
             
             filtered = d3.filter(data, function(d) {
                 if (d["Country"] == selected_country) return d;
@@ -284,22 +315,22 @@ d3.csv("data.csv").then(function(data) {
                 if (parseInt(d["Year"]) >= mindate && parseInt(d["Year"]) <= maxdate) return d;
             });
 
-            total_lbl.innerText = "Total cyber attacks: " + filtered.length + " (" + (100*filtered.length/tocc).toFixed(2)+"%)";
+            total_lbl.innerHTML = "<b>Total cyber attacks:</b> " + filtered.length + " (" + (100*filtered.length/tocc).toFixed(2)+"%)";
 
             var avg_res = d3.map(filtered, function(d) {
                 return parseInt(d["Incident Resolution Time (in Hours)"]);
             }).reduce((a,b) => a+b, 0) / filtered.length;
-            avg_res_lbl.innerText = "Average response time: " + avg_res.toFixed(2) + " hours";
+            avg_res_lbl.innerHTML = "<b>Average response time:</b> " + avg_res.toFixed(2) + " hours";
             
             var avg_loss = d3.map(filtered, function(d) {
                 return parseInt(d["Financial Loss (in Million $)"]);
             }).reduce((a,b) => a+b, 0) / filtered.length;
-            avg_loss_lbl.innerText = "Average financial loss: $" + avg_loss.toFixed(2) + " Million USD";
+            avg_loss_lbl.innerHTML = "<b>Average financial loss:</b> $" + avg_loss.toFixed(2) + " Million USD";
 
             var avg_usr = d3.map(filtered, function(d) {
                 return parseInt(d["Number of Affected Users"]);
             }).reduce((a,b) => a+b, 0) / filtered.length / 1000;
-            avg_usr_lbl.innerText = "Average number of affected users: " + avg_usr.toFixed(0) + " thousand users";
+            avg_usr_lbl.innerHTML = "<b>Average number of affected users:</b> " + avg_usr.toFixed(0) + " thousand users";
 
             graph2(filtered);
         }
@@ -308,7 +339,7 @@ d3.csv("data.csv").then(function(data) {
             
             selected_country = "None";
             
-            sel_lbl.innerText = "Selected country: " + selected_country;
+            sel_lbl.innerHTML = "Selected country: " + selected_country;
 
             const mindate = parseInt(document.querySelector('#mindate').value);
             const maxdate = parseInt(document.querySelector('#maxdate').value);
@@ -317,22 +348,22 @@ d3.csv("data.csv").then(function(data) {
                 if (parseInt(d["Year"]) >= mindate && parseInt(d["Year"]) <= maxdate) return d;
             });
 
-            total_lbl.innerText = "Total cyber attacks: " + filtered.length;
+            total_lbl.innerHTML = "<b>Total cyber attacks:</b> " + filtered.length;
 
             var avg_res = d3.map(filtered, function(d) {
                 return parseInt(d["Incident Resolution Time (in Hours)"]);
             }).reduce((a,b) => a+b, 0) / filtered.length;
-            avg_res_lbl.innerText = "Average response time: " + avg_res.toFixed(2) + " hours";
+            avg_res_lbl.innerHTML = "<b>Average response time:</b> " + avg_res.toFixed(2) + " hours";
             
             var avg_loss = d3.map(filtered, function(d) {
                 return parseInt(d["Financial Loss (in Million $)"]);
             }).reduce((a,b) => a+b, 0) / filtered.length;
-            avg_loss_lbl.innerText = "Average financial loss: $" + avg_loss.toFixed(2) + " Million USD";
+            avg_loss_lbl.innerHTML = "<b>Average financial loss:</b> $" + avg_loss.toFixed(2) + " Million USD";
 
             var avg_usr = d3.map(filtered, function(d) {
                 return parseInt(d["Number of Affected Users"]);
             }).reduce((a,b) => a+b, 0) / filtered.length / 1000;
-            avg_usr_lbl.innerText = "Average number of affected users: " + avg_usr.toFixed(0) + " thousand users";
+            avg_usr_lbl.innerHTML = "<b>Average number of affected users:</b> " + avg_usr.toFixed(0) + " thousand users";
 
             graph2(filtered);
         }
@@ -352,16 +383,27 @@ d3.csv("data.csv").then(function(data) {
         if (minslider.value > maxslider.value) {
             minslider.value = maxslider.value;
         }
-        document.querySelector("#mind_lbl").innerText = minslider.value;
+        document.querySelector("#mind_lbl").innerHTML = minslider.value;
         filter_data(selected_country);
     };
     maxslider.oninput = function() { 
         if (maxslider.value < minslider.value) {
             maxslider.value = minslider.value;
         }
-        document.querySelector("#maxd_lbl").innerText = maxslider.value;
+        document.querySelector("#maxd_lbl").innerHTML = maxslider.value;
         filter_data(selected_country);
     };
+
+    // reset button
+    document.querySelector("#reset").onclick = function() {
+        minslider.value = 2015;
+        document.querySelector("#mind_lbl").innerHTML = minslider.value;
+        maxslider.value = 2024;
+        document.querySelector("#maxd_lbl").innerHTML = maxslider.value;
+        document.querySelector("#xvar").value = "Number of Affected Users";
+        document.querySelector("#yvar").value = "Incident Resolution Time (in Hours)";
+        filter_data("None");
+    }
 
     // draw world map
     d3.json("world.geojson").then(function(wdata){
