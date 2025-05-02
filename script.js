@@ -405,52 +405,56 @@ d3.csv("data.csv").then(function(data) {
         filter_data("None");
     }
 
+    drawMap();
+
     // draw world map
-    d3.json("world.geojson").then(function(wdata){
-        g.selectAll("path")
-            .data(wdata.features)
-            .enter().append("path")
-                .attr("fill", function(d){
-                    if (countries.includes(d["properties"]["name"])) {
-                        // set color to red if the country is in the data set
-                        return "#ff0000";
-                    } else {
-                        // else gray color
-                        return "#e8e8e8";
-                    }
-                })
-                .attr("fill-opacity", function(d) {
-                    if (countries.includes(d["properties"]["name"])) {
-                        // set opacity based on linear scale
-                        return opacity(occ[d["properties"]["name"]]);
-                    } else {
-                        return 1;
-                    }
-                })
-                .attr("d", path)
-                .style("stroke", "#fff")
-                .attr("name", function(d) {return d["properties"]["name"]})
-                .attr("class", "country")
-                // tooltip interactions
-                .on("mouseover", function(event, d) {
-                    var name = d["properties"]["name"];
-                    if (countries.includes(name)) {
-                        tooltip.style("opacity", 1);    // show tooltip
-                    }
-                })
-                .on("mousemove", function(event, d) {
-                    var name = d["properties"]["name"];
-                    // update tooltip text + position
-                    tooltip.html("<b>"+name+"</b>"+"<br/>"+occ[name]+" cyber attacks"+"<br/>-<br/>"+"click to filter by country")
-                        .style("left", (event.pageX + 15) + "px")
-                        .style("top", (event.pageY + 15) + "px");
-                })
-                .on("mouseout", function(event, d) {
-                    tooltip.style("opacity", 0);    // hide tooltip
-                })
-                .on("click", function(event, d) {
-                    var name = d["properties"]["name"];
-                    filter_data(name);
-                });
-    });
+    function drawMap() {
+        d3.json("world.geojson").then(function(wdata){
+            g.selectAll("path")
+                .data(wdata.features)
+                .enter().append("path")
+                    .attr("fill", function(d){
+                        if (countries.includes(d["properties"]["name"])) {
+                            // set color to red if the country is in the data set
+                            return "#ff0000";
+                        } else {
+                            // else gray color
+                            return "#e8e8e8";
+                        }
+                    })
+                    .attr("fill-opacity", function(d) {
+                        if (countries.includes(d["properties"]["name"])) {
+                            // set opacity based on linear scale
+                            return opacity(occ[d["properties"]["name"]]);
+                        } else {
+                            return 1;
+                        }
+                    })
+                    .attr("d", path)
+                    .style("stroke", "#fff")
+                    .attr("name", function(d) {return d["properties"]["name"]})
+                    .attr("class", "country")
+                    // tooltip interactions
+                    .on("mouseover", function(event, d) {
+                        var name = d["properties"]["name"];
+                        if (countries.includes(name)) {
+                            tooltip.style("opacity", 1);    // show tooltip
+                        }
+                    })
+                    .on("mousemove", function(event, d) {
+                        var name = d["properties"]["name"];
+                        // update tooltip text + position
+                        tooltip.html("<b>"+name+"</b>"+"<br/>"+occ[name]+" cyber attacks"+"<br/>-<br/>"+"click to filter by country")
+                            .style("left", (event.pageX + 15) + "px")
+                            .style("top", (event.pageY + 15) + "px");
+                    })
+                    .on("mouseout", function(event, d) {
+                        tooltip.style("opacity", 0);    // hide tooltip
+                    })
+                    .on("click", function(event, d) {
+                        var name = d["properties"]["name"];
+                        filter_data(name);
+                    });
+        });
+    }
 })
