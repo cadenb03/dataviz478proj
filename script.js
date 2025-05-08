@@ -1,19 +1,18 @@
 var width = 960,
-    height = 500;
+    height = 600;
 
 var projection = d3.geoMercator()
     .scale(width / 1.3 / Math.PI)
     .translate([width / 2, height / 2])
-    .center([100, 13])
-    .scale(100)
+    .scale(120)
 
 var svg = d3.select("#chart")
     .attr("width", width)
     .attr("height", height);
 
 var svg2 = d3.select("#chart2")
-    .attr("width", 3200)
-    .attr("height", height);
+    .attr("width", 1080)
+    .attr("height", 600);
 
 var path = d3.geoPath()
     .projection(projection);
@@ -68,12 +67,12 @@ function graph2(data) {
             "Malware"
         ])
         .range([
-            "#3A6A89",  // muted teal
-            "#F24C3D",  // bright coral
-            "#6B8E23",  // olive green
-            "#FFD700",  // gold
-            "#8A2BE2",  // blue violet
-            "#E6A9A1"   // pale pink
+            "#FF0900",
+            "#1EC4FF",
+            "#F06E00",
+            "#4C62F0",
+            "#842A9E",
+            "#FFCF17"
         ]);
 
     
@@ -156,34 +155,34 @@ function graph2(data) {
 
     switch (yvar) {
         case "Number of Affected Users":
-            y = num_usr_scale.range([height - 80, 0]);
+            y = num_usr_scale.range([height - 80, 40]);
             break;
         case "Financial Loss (in Million $)":
-            y = fin_loss_scale.range([height - 80, 0]);
+            y = fin_loss_scale.range([height - 80, 40]);
             break;
         case "Incident Resolution Time (in Hours)":
-            y = res_time_scale.range([height - 80, 0]);
+            y = res_time_scale.range([height - 80, 40]);
             break;
         case "Year":
-            y = year_scale.range([height - 80, 0]);
+            y = year_scale.range([height - 80, 40]);
             break;
         case "Attack Type":
-            y = type_scale.range([height - 80, 0]);
+            y = type_scale.range([height - 80, 40]);
             break;
         case "Attack Source":
-            y = source_scale.range([height - 80, 0]);
+            y = source_scale.range([height - 80, 40]);
             break;
         case "Target Industry":
-            y = target_scale.range([height - 80, 0]);
+            y = target_scale.range([height - 80, 40]);
             break;
         case "Security Vulnerability Type":
-            y = vuln_scale.range([height - 80, 0]);
+            y = vuln_scale.range([height - 80, 40]);
             break;
         case "Defense Mechanism Used":
-            y = def_scale.range([height - 80, 0]);
+            y = def_scale.range([height - 80, 40]);
             break;
         default:
-            y = num_usr_scale.range([height - 80, 0]);
+            y = num_usr_scale.range([height - 80, 40]);
             break;
     }
 
@@ -192,7 +191,7 @@ function graph2(data) {
         .call(d3.axisBottom(x))
         .attr("transform", "translate(0," + (height - 80) + ")")
     svg2.append("g")    // y axis
-        .attr("transform", "translate("+ (80) +", 0)")
+        .attr("transform", "translate(80, 0)")
         .call(d3.axisLeft(y));
     svg2.append('g')
         .selectAll("dot")
@@ -242,13 +241,16 @@ function graph2(data) {
             .attr("x", 910)
             .attr("y", (d, i) => 31+i*25)
             .text(d => d)
+            .style('fill', '#ccc');
     svg2.selectAll("axisl")
         .data([0])
         .enter()
         .append("text")
-            .attr("x", width/2)
+            .attr("x", "50%")
             .attr("y", height-32)
             .text(xvar)
+            .style('fill', '#ccc')
+            .style("text-anchor", "middle");
 }
 
 d3.csv("data.csv").then(function(data) {
@@ -256,13 +258,16 @@ d3.csv("data.csv").then(function(data) {
     var occ = occurences(countries);
     var tocc = Object.values(occ).reduce((a, b) => a+b, 0);
 
+    var filtered_countries = d3.map(data, function(d){return d.Country});
+    var occf = occurences(filtered_countries);
+
     var types = occurences(d3.map(data, function(d){return d["Attack Type"]}));
     const entries = Object.entries(types);
     entries.sort((a, b) => a[1] - b[1]);
     const sortedScores = Object.fromEntries(entries);
 
-    var min_att = Math.min(...Object.values(occ))   // minimum number of attacks
-    var max_att = Math.max(...Object.values(occ))   // maximum number of attacks
+    var min_att = Math.min(...Object.values(occf))   // minimum number of attacks
+    var max_att = Math.max(...Object.values(occf))   // maximum number of attacks
 
     // opacity of the red color depending on the number of attacks against a country
     var opacity = d3.scaleLinear()
@@ -315,6 +320,18 @@ d3.csv("data.csv").then(function(data) {
                 if (parseInt(d["Year"]) >= mindate && parseInt(d["Year"]) <= maxdate) return d;
             });
 
+            filtered_countries = d3.map(d3.filter(data, function(d) {
+                if (parseInt(d["Year"]) >= mindate && parseInt(d["Year"]) <= maxdate) return d;
+            }), function(d) {
+                return d.Country;
+            });
+
+            occf = occurences(filtered_countries);
+
+            min_att = Math.min(...Object.values(occf));
+            max_att = Math.max(...Object.values(occf));
+            opacity = d3.scaleLinear().domain([min_att, max_att]).range([.2, 1]);
+
             total_lbl.innerHTML = "<b>Total cyber attacks:</b> " + filtered.length + " (" + (100*filtered.length/tocc).toFixed(2)+"%)";
 
             var avg_res = d3.map(filtered, function(d) {
@@ -333,6 +350,7 @@ d3.csv("data.csv").then(function(data) {
             avg_usr_lbl.innerHTML = "<b>Average number of affected users:</b> " + avg_usr.toFixed(0) + " thousand users";
 
             graph2(filtered);
+            drawMap();
         }
         else {
             // clear filtered country
@@ -347,6 +365,18 @@ d3.csv("data.csv").then(function(data) {
             filtered = d3.filter(data, function(d) {
                 if (parseInt(d["Year"]) >= mindate && parseInt(d["Year"]) <= maxdate) return d;
             });
+
+            filtered_countries = d3.map(d3.filter(data, function(d) {
+                if (parseInt(d["Year"]) >= mindate && parseInt(d["Year"]) <= maxdate) return d;
+            }), function(d) {
+                return d.Country;
+            });
+
+            occf = occurences(filtered_countries);
+
+            min_att = Math.min(...Object.values(occf));
+            max_att = Math.max(...Object.values(occf));
+            opacity = d3.scaleLinear().domain([min_att, max_att]).range([.2, 1]);
 
             total_lbl.innerHTML = "<b>Total cyber attacks:</b> " + filtered.length;
 
@@ -366,6 +396,7 @@ d3.csv("data.csv").then(function(data) {
             avg_usr_lbl.innerHTML = "<b>Average number of affected users:</b> " + avg_usr.toFixed(0) + " thousand users";
 
             graph2(filtered);
+            drawMap();
         }
     }
 
@@ -381,14 +412,14 @@ d3.csv("data.csv").then(function(data) {
 
     minslider.oninput = function() {
         if (minslider.value > maxslider.value) {
-            minslider.value = maxslider.value;
+            maxslider.value = minslider.value;
         }
         document.querySelector("#mind_lbl").innerHTML = minslider.value;
         filter_data(selected_country);
     };
     maxslider.oninput = function() { 
         if (maxslider.value < minslider.value) {
-            maxslider.value = minslider.value;
+            minslider.value = maxslider.value;
         }
         document.querySelector("#maxd_lbl").innerHTML = maxslider.value;
         filter_data(selected_country);
@@ -410,6 +441,8 @@ d3.csv("data.csv").then(function(data) {
     // draw world map
     function drawMap() {
         d3.json("world.geojson").then(function(wdata){
+            g.html("");
+            g
             g.selectAll("path")
                 .data(wdata.features)
                 .enter().append("path")
@@ -419,19 +452,29 @@ d3.csv("data.csv").then(function(data) {
                             return "#ff0000";
                         } else {
                             // else gray color
-                            return "#e8e8e8";
+                            return "#1a1a1a";
                         }
                     })
                     .attr("fill-opacity", function(d) {
                         if (countries.includes(d["properties"]["name"])) {
                             // set opacity based on linear scale
-                            return opacity(occ[d["properties"]["name"]]);
+                            return opacity(occf[d["properties"]["name"]]);
                         } else {
                             return 1;
                         }
                     })
                     .attr("d", path)
-                    .style("stroke", "#fff")
+                    .style("stroke", function(d) {
+                        if (countries.includes(d["properties"]["name"])) {
+                            console.log(selected_country);
+                            if (selected_country == d["properties"]["name"]) {
+                                return "#fff"
+                            }
+                            return "#00000000";
+                        } else {
+                            return "#00000000"  // no outline
+                        }
+                    })
                     .attr("name", function(d) {return d["properties"]["name"]})
                     .attr("class", "country")
                     // tooltip interactions
@@ -443,8 +486,11 @@ d3.csv("data.csv").then(function(data) {
                     })
                     .on("mousemove", function(event, d) {
                         var name = d["properties"]["name"];
+
+                        //console.log(filtered_countries);
+                        
                         // update tooltip text + position
-                        tooltip.html("<b>"+name+"</b>"+"<br/>"+occ[name]+" cyber attacks"+"<br/>-<br/>"+"click to filter by country")
+                        tooltip.html("<b>"+name+"</b>"+"<br/>"+occf[name]+" cyber attacks"+"<br/>-<br/>"+"click to filter by country")
                             .style("left", (event.pageX + 15) + "px")
                             .style("top", (event.pageY + 15) + "px");
                     })
@@ -454,6 +500,8 @@ d3.csv("data.csv").then(function(data) {
                     .on("click", function(event, d) {
                         var name = d["properties"]["name"];
                         filter_data(name);
+                        drawMap();
+                        //console.log(filtered);
                     });
         });
     }
